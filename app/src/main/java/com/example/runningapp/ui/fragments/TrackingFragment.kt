@@ -7,7 +7,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import com.example.runningapp.R
+import com.example.runningapp.other.Constants.ACTION_PAUSE_SERVICE_SERVICE
 import com.example.runningapp.other.Constants.ACTION_START_OR_RESUME_SERVICE
 import com.example.runningapp.other.Constants.MAP_ZOOM
 import com.example.runningapp.other.Constants.POLYLINE_COLOR
@@ -37,16 +39,45 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
         super.onViewCreated(view, savedInstanceState)
         mapView.onCreate(savedInstanceState)
         btnToggleRun.setOnClickListener {
-            sendCommandToService(ACTION_START_OR_RESUME_SERVICE)
+            toggleRun()
         }
         mapView.getMapAsync {
             map = it
+            addAllPolyLines()
         }
+
+        subscribeToObservers()
+    }
+
+    private fun toggleRun(){
+        if(isTracking){
+            sendCommandToService(ACTION_PAUSE_SERVICE_SERVICE)
+        } else {
+            sendCommandToService(ACTION_START_OR_RESUME_SERVICE)
+        }
+    }
+
+    private fun subscribeToObservers(){
+        TrackingService.isTracking.observe(viewLifecycleOwner, Observer {
+            updateTracking(it)
+        })
+
+        TrackingService.pathPoints.observe(viewLifecycleOwner, Observer {
+            pathPoints = it
+            addLatestPolyLine()
+            moveCameraToUser()
+        })
     }
 
     private fun updateTracking(isTracking:Boolean) {
         this.isTracking = isTracking
-        
+        if(!isTracking){
+            btnToggleRun.text = "Start"
+            btnFinishRun.visibility = View.VISIBLE
+        } else {
+            btnToggleRun.text = "Stop"
+            btnFinishRun.visibility = View.GONE
+        }
     }
 
     private fun addLatestPolyLine() {

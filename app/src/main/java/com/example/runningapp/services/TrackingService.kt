@@ -43,6 +43,7 @@ class TrackingService :LifecycleService() {
     var isFirstRun = true
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
+
     companion object {
         val isTracking = MutableLiveData<Boolean>()
         val pathPoints = MutableLiveData<PolyLines>()
@@ -75,6 +76,10 @@ class TrackingService :LifecycleService() {
                 }
             }
         }
+    }
+
+    private fun pauseService(){
+        isTracking.postValue(false)
     }
 
     @SuppressLint("MissingPermission")
@@ -121,10 +126,12 @@ class TrackingService :LifecycleService() {
                         isFirstRun = false
                     } else{
                         Timber.d("started or resumed service")
+                        startForeGroundService()
                     }
                 }
                 ACTION_PAUSE_SERVICE_SERVICE->{
                     Timber.d("Paused service")
+                    pauseService()
                 }
                 ACTION_STOP_SERVICE_SERVICE->{
                     Timber.d("Stopped service")
