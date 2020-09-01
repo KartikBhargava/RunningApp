@@ -3,25 +3,21 @@ package com.example.runningapp.ui.fragments
 import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import com.example.runningapp.R
-import com.example.runningapp.other.Constants.ACTION_PAUSE_SERVICE_SERVICE
+import com.example.runningapp.other.Constants.ACTION_PAUSE_SERVICE
 import com.example.runningapp.other.Constants.ACTION_START_OR_RESUME_SERVICE
 import com.example.runningapp.other.Constants.MAP_ZOOM
 import com.example.runningapp.other.Constants.POLYLINE_COLOR
 import com.example.runningapp.other.Constants.POLYLINE_WIDTH
 import com.example.runningapp.other.TrackingUtility
 import com.example.runningapp.services.PolyLine
-import com.example.runningapp.services.PolyLines
 import com.example.runningapp.services.TrackingService
 import com.example.runningapp.ui.viewmodels.MainViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_tracking.*
@@ -53,7 +49,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
 
     private fun toggleRun(){
         if(isTracking){
-            sendCommandToService(ACTION_PAUSE_SERVICE_SERVICE)
+            sendCommandToService(ACTION_PAUSE_SERVICE)
         } else {
             sendCommandToService(ACTION_START_OR_RESUME_SERVICE)
         }

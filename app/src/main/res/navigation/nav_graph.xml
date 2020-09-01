@@ -5,7 +5,7 @@
 
     <action android:id="@+id/action_global_trackingFragment"
         app:destination="@+id/trackingFragment"
-        app:launchSingleTop="true"
+        app:launchSingleTop="true"/>
 
     <fragment
         android:id="@+id/runFragment"
