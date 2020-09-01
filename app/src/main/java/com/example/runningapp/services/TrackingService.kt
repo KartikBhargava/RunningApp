@@ -45,15 +45,16 @@ typealias  PolyLines = MutableList<PolyLine>
 class TrackingService : LifecycleService() {
 
     var isFirstRun = true
+    var serviceKilled = false
 
     @Inject
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private val timeRunInSeconds = MutableLiveData<Long>()
 
     @Inject
-    lateinit var baseNotification:NotificationCompat.Builder
+    lateinit var baseNotification: NotificationCompat.Builder
 
-    lateinit var curNotification:NotificationCompat.Builder
+    lateinit var curNotification: NotificationCompat.Builder
 
     companion object {
         val timeRunInMillis = MutableLiveData<Long>()
@@ -126,8 +127,8 @@ class TrackingService : LifecycleService() {
         isTimerEnabled = false
     }
 
-    private fun updateNotificationTrackingState(isTracking: Boolean){
-        val notificationActionText = if(isTracking) "Pause" else "Resume"
+    private fun updateNotificationTrackingState(isTracking: Boolean) {
+        val notificationActionText = if (isTracking) "Pause" else "Resume"
         val pendingIntent = if (isTracking) {
             val pauseIntent = Intent(this, TrackingService::class.java).apply {
                 action = ACTION_PAUSE_SERVICE
@@ -140,14 +141,17 @@ class TrackingService : LifecycleService() {
             getService(this, 2, resumeIntent, FLAG_UPDATE_CURRENT)
         }
 
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         curNotification.javaClass.getDeclaredField("mActions").apply {
             isAccessible = true
             set(curNotification, ArrayList<NotificationCompat.Action>())
         }
-        curNotification = baseNotification
-            .addAction(R.drawable.ic_pause_black_24dp, notificationActionText, pendingIntent)
-        notificationManager.notify(NOTIFICATION_ID, curNotification.build())
+        if (!serviceKilled) {
+            curNotification = baseNotification
+                .addAction(R.drawable.ic_pause_black_24dp, notificationActionText, pendingIntent)
+            notificationManager.notify(NOTIFICATION_ID, curNotification.build())
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -185,6 +189,15 @@ class TrackingService : LifecycleService() {
         pathPoints.postValue(this)
     } ?: pathPoints.postValue(mutableListOf(mutableListOf()))
 
+    private fun killService() {
+        serviceKilled = true
+        isFirstRun = true
+        pauseService()
+        postInitialValues()
+        stopForeground(true)
+        stopSelf()
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let {
             when (it.action) {
@@ -203,6 +216,7 @@ class TrackingService : LifecycleService() {
                 }
                 ACTION_STOP_SERVICE -> {
                     Timber.d("Stopped service")
+                    killService()
                 }
             }
         }
@@ -221,9 +235,11 @@ class TrackingService : LifecycleService() {
 
         startForeground(NOTIFICATION_ID, baseNotification.build())
         timeRunInSeconds.observe(this, Observer {
-            val notification = curNotification
-                .setContentText(TrackingUtility.getFormattedStopWatchTime(it * 1000L, false))
-            notificationManager.notify(NOTIFICATION_ID, notification.build())
+            if (!serviceKilled) {
+                val notification = curNotification
+                    .setContentText(TrackingUtility.getFormattedStopWatchTime(it * 1000L, false))
+                notificationManager.notify(NOTIFICATION_ID, notification.build())
+            }
         })
     }
 
