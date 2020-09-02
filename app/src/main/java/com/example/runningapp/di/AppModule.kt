@@ -37,21 +37,19 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideSharedPreferences(@ApplicationContext app: Context) = app.getSharedPreferences(
-        SHARED_PREFERENCES_NAME, MODE_PRIVATE
-    )
+    fun provideSharedPreferences(@ApplicationContext app: Context) =
+        app.getSharedPreferences(SHARED_PREFERENCES_NAME, MODE_PRIVATE)
 
     @Singleton
     @Provides
-    fun providesName(sharedPref: SharedPreferences) = sharedPref.getString(KEY_NAME, "") ?: ""
+    fun provideName(sharedPref: SharedPreferences) = sharedPref.getString(KEY_NAME, "") ?: ""
 
     @Singleton
     @Provides
-    fun providesWeight(sharedPref: SharedPreferences) = sharedPref.getString(KEY_WEIGHT, "") ?: ""
+    fun provideWeight(sharedPref: SharedPreferences) = sharedPref.getFloat(KEY_WEIGHT, 80f)
 
     @Singleton
     @Provides
-    fun providesFirstTimeToggle(sharedPref: SharedPreferences) = sharedPref.getBoolean(
-        KEY_FIRST_TIME_TOGGLE, true
-    )
+    fun provideFirstTimeToggle(sharedPref: SharedPreferences) =
+        sharedPref.getBoolean(KEY_FIRST_TIME_TOGGLE, true)
 }
